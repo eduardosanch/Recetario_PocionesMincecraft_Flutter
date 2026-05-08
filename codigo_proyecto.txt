@@ -1,0 +1,83 @@
+==============================
+ARCHIVO: ./demo/Dockerfile
+==============================
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+WORKDIR /app
+
+COPY . .
+RUN chmod +x mvnw
+RUN ./mvnw clean package -DskipTests
+
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+
+COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
+
+EXPOSE 8080
+CMD ["java", "-jar", "app.jar"]
+
+
+==============================
+ARCHIVO: ./demo/tweeter/Dockerfile
+==============================
+FROM nginx:alpine
+COPY build/web /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
+
+==============================
+ARCHIVO: ./demo/tweeter/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md
+==============================
+# Launch Screen Assets
+
+You can customize the launch screen with your own desired assets by replacing the image files in this directory.
+
+You can also do it by opening your Flutter project's Xcode project with `open ios/Runner.xcworkspace`, selecting `Runner/Assets.xcassets` in the Project Navigator and dropping in the desired images.
+
+==============================
+ARCHIVO: ./demo/tweeter/README.md
+==============================
+# tweeter
+
+A new Flutter project.
+
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
+
+## Refactorización aplicada
+
+La carpeta `lib/` fue reorganizada para separar responsabilidades y reducir el acoplamiento entre UI, servicios y parseo de respuestas.
+
+Patrones usados:
+
+- Factory: `AppServiceFactory` centraliza la creación de dependencias de la app.
+- Facade: `LibraryFacade` unifica autenticación y operaciones sobre libros detrás de una sola interfaz.
+- Adapter: `BookResponseAdapter` normaliza respuestas del backend antes de convertirlas a modelos de dominio.
+
+Cambios principales:
+
+- `main.dart` quedó solo como punto de arranque y configuración de rutas.
+- `HomeScreen` pasó a su propio archivo y contiene la lógica visual de libros.
+- `LoginScreen` usa la fachada en lugar de instanciar servicios directamente.
+- `BookService` y `BookPostResponse` delegan el parseo de respuestas al adaptador.
+
+
+==============================
+ARCHIVO: ./README.md
+==============================
+# Recetario_PocionesMincecraft_Flutter
+una app tipo red social para publicar recetas de las pociones en minecraft, con reacciones, comentarios, imagenes y publicaciones
+
+
