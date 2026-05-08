@@ -75,36 +75,21 @@ public class WebSecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
 
-                        // Preflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Rutas públicas
                         .requestMatchers("/").permitAll()
+                        .requestMatchers("/api").permitAll()
+                        .requestMatchers("/api/").permitAll()
+
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
 
-                        // Consultas públicas de pociones
-                        .requestMatchers(HttpMethod.GET, "/api/potions").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/potions/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/potion-comments/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/potion-reactions/**").permitAll()
+                        // Permisos públicos directos para probar backend
+                        .requestMatchers("/api/potions").permitAll()
+                        .requestMatchers("/api/potions/**").permitAll()
+                        .requestMatchers("/api/potion-comments/**").permitAll()
+                        .requestMatchers("/api/potion-reactions/**").permitAll()
 
-                        // Crear, editar o eliminar pociones requiere login
-                        .requestMatchers(HttpMethod.POST, "/api/potions/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/potions/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/potions/**").authenticated()
-
-                        // Crear, editar o eliminar comentarios requiere login
-                        .requestMatchers(HttpMethod.POST, "/api/potion-comments/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/potion-comments/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/potion-comments/**").authenticated()
-
-                        // Crear, editar o eliminar reacciones requiere login
-                        .requestMatchers(HttpMethod.POST, "/api/potion-reactions/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/potion-reactions/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/potion-reactions/**").authenticated()
-
-                        // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 );
 
