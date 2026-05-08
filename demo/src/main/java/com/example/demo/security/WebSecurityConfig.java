@@ -116,32 +116,32 @@ public class WebSecurityConfig {
     }
 
     @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:52946",
-                "http://localhost:3000",
-                "http://localhost:8080"
-        ));
+public CorsConfigurationSource corsConfigurationSource() {
 
-        configuration.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "OPTIONS"
-        ));
+    CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:*",
+            "https://*.onrender.com"
+    ));
 
-        configuration.setAllowCredentials(true);
+    configuration.setAllowedMethods(List.of(
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "OPTIONS"
+    ));
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+    configuration.setAllowedHeaders(List.of("*"));
 
-        source.registerCorsConfiguration("/**", configuration);
+    configuration.setAllowCredentials(true);
 
-        return source;
-        }
+    UrlBasedCorsConfigurationSource source =
+            new UrlBasedCorsConfigurationSource();
+
+    source.registerCorsConfiguration("/**", configuration);
+
+    return source;
+}
 }
