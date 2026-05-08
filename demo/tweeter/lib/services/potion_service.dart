@@ -30,15 +30,18 @@ class PotionService implements IPotionRepository {
 
   String get _baseUrl => ApiConfig.potionsUrl;
 
-  Future<Map<String, String>> _headers() async {
+  Future<Map<String, String>> _headers({bool requireAuth = true}) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
     };
 
-    final token = await _authService.getTokenOrRestore();
+    // Solo enviar token si se requiere autenticación
+    if (requireAuth) {
+      final token = await _authService.getTokenOrRestore();
 
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
     }
 
     return headers;
@@ -46,9 +49,12 @@ class PotionService implements IPotionRepository {
 
   @override
   Future<List<PotionPost>> fetchPotions() async {
+    // Este endpoint es público, no requerimos token
+    final headers = await _headers(requireAuth: false);
+
     final response = await _httpClient.get(
       Uri.parse(_baseUrl),
-      headers: await _headers(),
+      headers: headers,
     );
 
     if (response.statusCode == 200) {
@@ -68,9 +74,10 @@ class PotionService implements IPotionRepository {
     required int duracionSegundos,
     required List<String> imagenes,
   }) async {
+    // Este endpoint requiere autenticación
     final response = await _httpClient.post(
       Uri.parse('$_baseUrl/create'),
-      headers: await _headers(),
+      headers: await _headers(requireAuth: true),
       body: jsonEncode({
         'nombre': nombre,
         'descripcion': descripcion,
@@ -93,7 +100,7 @@ class PotionService implements IPotionRepository {
   Future<void> deletePotion(int id) async {
     final response = await _httpClient.delete(
       Uri.parse('$_baseUrl/$id'),
-      headers: await _headers(),
+      headers: await _headers(requireAuth: true),
     );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
@@ -106,7 +113,7 @@ class PotionService implements IPotionRepository {
   Future<List<PotionComment>> fetchPotionComments(int potionPostId) async {
     final response = await _httpClient.get(
       Uri.parse('${ApiConfig.baseUrl}/potion-comments/potion/$potionPostId'),
-      headers: await _headers(),
+      headers: await _headers(requireAuth: false),
     );
 
     if (response.statusCode != 200) {
@@ -136,7 +143,7 @@ class PotionService implements IPotionRepository {
   }) async {
     final response = await _httpClient.post(
       Uri.parse('${ApiConfig.baseUrl}/potion-comments'),
-      headers: await _headers(),
+      headers: await _headers(requireAuth: true),
       body: jsonEncode({
         'potionPostId': potionPostId,
         'content': content,
@@ -160,7 +167,7 @@ class PotionService implements IPotionRepository {
   }) async {
     final response = await _httpClient.post(
       Uri.parse('${ApiConfig.baseUrl}/potion-reactions'),
-      headers: await _headers(),
+      headers: await _headers(requireAuth: true),
       body: jsonEncode({
         'potionPostId': potionPostId,
         'type': type,

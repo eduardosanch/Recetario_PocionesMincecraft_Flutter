@@ -33,7 +33,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _potionsFuture = _facade.fetchPotions();
+    // Asegurar que el token se carga antes de hacer la solicitud
+    _potionsFuture = _loadPotions();
+  }
+
+  Future<List<PotionPost>> _loadPotions() async {
+    // Reinitializar la sesión para cargar el token guardado
+    await _facade.init();
+    return _facade.fetchPotions();
   }
 
   @override
