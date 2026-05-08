@@ -16,7 +16,15 @@ public class PotionReactionRequest {
         return potionPostId;
     }
 
+    public void setPotionPostId(Long potionPostId) {
+        this.potionPostId = potionPostId;
+    }
+
     public EReaction getType() {
         return type;
+    }
+
+    public void setType(EReaction type) {
+        this.type = type;
     }
 }

@@ -29,15 +29,31 @@ public class CreatePotionPostRequest {
         return nombre;
     }
 
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
     public String getDescripcion() {
         return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
     public Integer getDuracionSegundos() {
         return duracionSegundos;
     }
 
+    public void setDuracionSegundos(Integer duracionSegundos) {
+        this.duracionSegundos = duracionSegundos;
+    }
+
     public List<String> getImagenes() {
         return imagenes;
+    }
+
+    public void setImagenes(List<String> imagenes) {
+        this.imagenes = imagenes;
     }
 }
