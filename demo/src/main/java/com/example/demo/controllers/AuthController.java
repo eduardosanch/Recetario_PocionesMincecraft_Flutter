@@ -52,10 +52,17 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(
-            @Valid @RequestBody LoginRequest loginRequest
-    ) {
+   @PostMapping("/signin")
+public ResponseEntity<?> authenticateUser(
+        @Valid @RequestBody LoginRequest loginRequest
+) {
+
+    System.out.println("========== LOGIN DEBUG ==========");
+    System.out.println("USERNAME: " + loginRequest.getUsername());
+    System.out.println("PASSWORD: " + loginRequest.getPassword());
+
+    try {
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -84,7 +91,15 @@ public class AuthController {
                         roles
                 )
         );
+
+    } catch (Exception e) {
+
+        e.printStackTrace();
+
+        return ResponseEntity.badRequest()
+                .body(new MessageResponse("ERROR LOGIN"));
     }
+}
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(
