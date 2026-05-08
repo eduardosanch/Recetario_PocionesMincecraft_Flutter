@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -41,8 +42,7 @@ public class WebSecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider =
-                new DaoAuthenticationProvider();
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
 
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
@@ -65,9 +65,7 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors ->
-                        cors.configurationSource(corsConfigurationSource())
-                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(unauthorizedHandler)
@@ -75,36 +73,40 @@ public class WebSecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                
                 .authorizeHttpRequests(auth -> auth
 
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Preflight CORS
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                .requestMatchers("/").permitAll()
+                        // Rutas públicas
+                        .requestMatchers("/").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
 
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/test/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/potions").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/potions/**").permitAll()
-                
-                .requestMatchers(HttpMethod.GET, "/api/potion-comments/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/potion-reactions/**").permitAll()
+                        // Consultas públicas de pociones
+                        .requestMatchers(HttpMethod.GET, "/api/potions").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/potions/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/potion-comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/potion-reactions/**").permitAll()
 
-                .requestMatchers(HttpMethod.POST, "/api/potions/**").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/potions/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/potions/**").authenticated()
+                        // Crear, editar o eliminar pociones requiere login
+                        .requestMatchers(HttpMethod.POST, "/api/potions/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/potions/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/potions/**").authenticated()
 
-                .requestMatchers(HttpMethod.POST, "/api/potion-comments/**").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/potion-comments/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/potion-comments/**").authenticated()
+                        // Crear, editar o eliminar comentarios requiere login
+                        .requestMatchers(HttpMethod.POST, "/api/potion-comments/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/potion-comments/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/potion-comments/**").authenticated()
 
-                .requestMatchers(HttpMethod.POST, "/api/potion-reactions/**").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/potion-reactions/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/potion-reactions/**").authenticated()
+                        // Crear, editar o eliminar reacciones requiere login
+                        .requestMatchers(HttpMethod.POST, "/api/potion-reactions/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/potion-reactions/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/potion-reactions/**").authenticated()
 
-                .anyRequest().authenticated()
-         );
-
+                        // Todo lo demás requiere autenticación
+                        .anyRequest().authenticated()
+                );
 
         http.authenticationProvider(authenticationProvider());
 
@@ -117,32 +119,32 @@ public class WebSecurityConfig {
     }
 
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
 
-    CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://*.onrender.com"
+        ));
 
-    configuration.setAllowedOriginPatterns(List.of(
-            "http://localhost:*",
-            "https://*.onrender.com"
-    ));
+        configuration.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
 
-    configuration.setAllowedMethods(List.of(
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE",
-            "OPTIONS"
-    ));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
-    configuration.setAllowedHeaders(List.of("*"));
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
 
-    configuration.setAllowCredentials(true);
+        source.registerCorsConfiguration("/**", configuration);
 
-    UrlBasedCorsConfigurationSource source =
-            new UrlBasedCorsConfigurationSource();
-
-    source.registerCorsConfiguration("/**", configuration);
-
-    return source;
-}
+        return source;
+    }
 }
