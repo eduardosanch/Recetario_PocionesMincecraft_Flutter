@@ -1,9 +1,11 @@
 class ApiConfig {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:8080/api',
+    defaultValue:
+        'https://recetario-pocionesminecraft-flutter.onrender.com',
   );
 
-  static String get authUrl => '$baseUrl/auth';
-  static String get potionsUrl => '$baseUrl/potions';
+  static String get authUrl => '$baseUrl/api/auth';
+
+  static String get potionsUrl => '$baseUrl/api/potions';
 }

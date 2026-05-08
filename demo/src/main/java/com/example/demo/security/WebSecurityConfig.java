@@ -115,19 +115,15 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+ @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        /*
-         * Para Render:
-         * El frontend está en https://literatura-1.onrender.com
-         * El backend está en https://literatura-8l0q.onrender.com
-         *
-         * Como usamos JWT en el header Authorization y no cookies,
-         * allowCredentials puede ir en false.
-         */
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:52946",
+                "http://localhost:3000",
+                "http://localhost:8080"
+        ));
 
         configuration.setAllowedMethods(List.of(
                 "GET",
@@ -139,13 +135,7 @@ public class WebSecurityConfig {
 
         configuration.setAllowedHeaders(List.of("*"));
 
-        configuration.setExposedHeaders(List.of(
-                "Authorization"
-        ));
-
-        configuration.setAllowCredentials(false);
-
-        configuration.setMaxAge(3600L);
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
@@ -153,5 +143,5 @@ public class WebSecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
-    }
+        }
 }
