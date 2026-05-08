@@ -1,0 +1,388 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+
+\title{
+    \textbf{Documentación de implementación para la aplicación Pociones de Minecraft}
+}
+
+\author{}
+\date{}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    language=Java
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\section{Introducción}
+
+En este proyecto desarrollé la aplicación \textbf{Pociones de Minecraft}, utilizando una arquitectura cliente-servidor compuesta por Flutter para el frontend, Spring Boot para el backend y PostgreSQL como sistema gestor de base de datos.
+
+El objetivo principal de la aplicación es permitir a los usuarios consultar y administrar recetas de pociones inspiradas en Minecraft, además de implementar funcionalidades como autenticación, comentarios y reacciones.
+
+Durante el desarrollo implementé distintos patrones de diseño y buenas prácticas de programación orientada a objetos con el propósito de mantener una arquitectura organizada, escalable y reutilizable.
+
+\section{Arquitectura general del proyecto}
+
+Para organizar correctamente el sistema, dividí el proyecto en distintas capas:
+
+\begin{itemize}
+    \item Frontend Flutter
+    \item Backend Spring Boot
+    \item API REST
+    \item Base de datos PostgreSQL
+\end{itemize}
+
+La arquitectura sigue el flujo:
+
+\begin{center}
+UI $\rightarrow$ Controladores $\rightarrow$ Servicios $\rightarrow$ Repositorios $\rightarrow$ Base de datos
+\end{center}
+
+Con esta separación logré desacoplar responsabilidades y facilitar el mantenimiento del sistema.
+
+\section{Patrones de diseño utilizados}
+
+\subsection{Patrón Singleton}
+
+\subsubsection{¿Qué es?}
+
+El patrón Singleton garantiza que únicamente exista una instancia de una clase durante toda la ejecución del programa.
+
+\subsubsection{¿Cómo lo utilicé?}
+
+Lo implementé dentro del servicio de autenticación en Flutter:
+
+\begin{lstlisting}
+class AuthService implements IAuthRepository {
+  static final AuthService _instance = AuthService._internal();
+
+  AuthService._internal();
+
+  factory AuthService() {
+    return _instance;
+  }
+}
+\end{lstlisting}
+
+\subsubsection{¿Para qué lo utilicé?}
+
+Utilicé este patrón para:
+
+\begin{itemize}
+    \item Mantener una única sesión de autenticación
+    \item Evitar múltiples instancias del cliente HTTP
+    \item Compartir el token JWT en toda la aplicación
+\end{itemize}
+
+\subsection{Patrón Repository}
+
+\subsubsection{¿Qué es?}
+
+El patrón Repository permite encapsular el acceso a datos y separar la lógica de persistencia de la lógica de negocio.
+
+\subsubsection{¿Cómo lo utilicé?}
+
+Lo implementé utilizando Spring Data JPA:
+
+\begin{lstlisting}
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    Optional<User> findByUsername(String username);
+
+    Boolean existsByEmail(String email);
+}
+\end{lstlisting}
+
+\subsubsection{¿Para qué lo utilicé?}
+
+Con este patrón logré:
+
+\begin{itemize}
+    \item Abstraer consultas SQL
+    \item Facilitar operaciones CRUD
+    \item Mantener desacoplado el acceso a datos
+\end{itemize}
+
+\subsection{Patrón DTO (Data Transfer Object)}
+
+\subsubsection{¿Qué es?}
+
+El patrón DTO se utiliza para transferir información entre capas sin exponer directamente las entidades de la base de datos.
+
+\subsubsection{¿Cómo lo utilicé?}
+
+Lo implementé en las clases de autenticación:
+
+\begin{lstlisting}
+public class LoginRequest {
+
+    private String username;
+
+    private String password;
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+public class JwtResponse {
+
+    private String accessToken;
+
+    private Long id;
+
+    private String username;
+}
+\end{lstlisting}
+
+\subsubsection{¿Para qué lo utilicé?}
+
+Este patrón me permitió:
+
+\begin{itemize}
+    \item Validar la información recibida
+    \item Proteger entidades internas
+    \item Mejorar seguridad y organización
+\end{itemize}
+
+\subsection{Patrón Builder}
+
+\subsubsection{¿Qué es?}
+
+El patrón Builder facilita la creación de objetos complejos.
+
+\subsubsection{¿Cómo lo utilicé?}
+
+Lo implementé en la clase \texttt{UserDetailsImpl}:
+
+\begin{lstlisting}
+public static UserDetailsImpl build(User user) {
+
+    List<GrantedAuthority> authorities =
+        user.getRoles().stream()
+            .map(role -> new SimpleGrantedAuthority(
+                role.getName().name()))
+            .collect(Collectors.toList());
+
+    return new UserDetailsImpl(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getPassword(),
+            authorities);
+}
+\end{lstlisting}
+
+\subsubsection{¿Para qué lo utilicé?}
+
+Lo utilicé para:
+
+\begin{itemize}
+    \item Construir objetos de autenticación complejos
+    \item Centralizar la creación de usuarios autenticados
+    \item Mejorar reutilización del código
+\end{itemize}
+
+\subsection{Patrón Dependency Injection}
+
+\subsubsection{¿Qué es?}
+
+La inyección de dependencias permite que los objetos sean proporcionados automáticamente por el framework.
+
+\subsubsection{¿Cómo lo utilicé?}
+
+Implementé este patrón en controladores y servicios:
+
+\begin{lstlisting}
+@Autowired
+AuthenticationManager authenticationManager;
+
+@Autowired
+UserRepository userRepository;
+\end{lstlisting}
+
+\subsubsection{¿Para qué lo utilicé?}
+
+Gracias a este patrón pude:
+
+\begin{itemize}
+    \item Reducir acoplamiento
+    \item Facilitar pruebas
+    \item Mejorar mantenibilidad
+\end{itemize}
+
+\section{Buenas prácticas implementadas}
+
+\subsection{Separación de responsabilidades}
+
+Organicé el sistema para que cada clase tuviera una única responsabilidad:
+
+\begin{itemize}
+    \item Los Controllers manejan peticiones HTTP
+    \item Los Services contienen lógica de negocio
+    \item Los Repositories acceden a la base de datos
+    \item Los Models representan entidades
+\end{itemize}
+
+\subsection{Uso de JWT}
+
+Implementé autenticación mediante JWT.
+
+\begin{lstlisting}
+String jwt = jwtUtils.generateJwtToken(authentication);
+\end{lstlisting}
+
+Esto me permitió:
+
+\begin{itemize}
+    \item Utilizar autenticación stateless
+    \item Mejorar seguridad
+    \item Facilitar integración con Flutter
+\end{itemize}
+
+\subsection{Encriptación de contraseñas}
+
+Protegí las contraseñas utilizando BCrypt.
+
+\begin{lstlisting}
+encoder.encode(signUpRequest.getPassword())
+\end{lstlisting}
+
+Con esto evité almacenar contraseñas en texto plano.
+
+\subsection{Uso de HTTP Status Codes}
+
+Utilicé códigos HTTP adecuados para representar estados del sistema:
+
+\begin{itemize}
+    \item 200 OK
+    \item 201 Created
+    \item 400 Bad Request
+    \item 401 Unauthorized
+\end{itemize}
+
+\subsection{Uso de interfaces}
+
+En Flutter implementé interfaces para desacoplar servicios:
+
+\begin{lstlisting}
+class AuthService implements IAuthRepository
+\end{lstlisting}
+
+Esto me permitió:
+
+\begin{itemize}
+    \item Mejorar escalabilidad
+    \item Facilitar pruebas
+    \item Permitir futuras implementaciones
+\end{itemize}
+
+\section{Seguridad implementada}
+
+\subsection{Spring Security}
+
+Utilicé Spring Security para proteger endpoints.
+
+\begin{lstlisting}
+.requestMatchers("/api/auth/**").permitAll()
+.anyRequest().authenticated()
+\end{lstlisting}
+
+\subsection{Control de sesiones}
+
+Configuré el sistema para trabajar con sesiones stateless.
+
+\begin{lstlisting}
+.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+\end{lstlisting}
+
+\subsection{Configuración CORS}
+
+Configuré CORS para permitir comunicación segura entre Flutter Web y Spring Boot.
+
+\begin{lstlisting}
+configuration.setAllowedOrigins(List.of(
+    "http://localhost:3000"
+));
+\end{lstlisting}
+
+\section{Base de datos}
+
+Utilicé PostgreSQL hospedado en Aiven como sistema gestor de base de datos.
+
+Las principales entidades implementadas fueron:
+
+\begin{itemize}
+    \item User
+    \item Role
+    \item Potion
+    \item PotionComment
+    \item PotionReaction
+\end{itemize}
+
+También implementé relaciones:
+
+\begin{itemize}
+    \item OneToMany
+    \item ManyToMany
+    \item ManyToOne
+\end{itemize}
+
+\section{Despliegue}
+
+Realicé el despliegue del backend utilizando Render.
+
+Las tecnologías utilizadas fueron:
+
+\begin{itemize}
+    \item Spring Boot
+    \item PostgreSQL
+    \item Aiven
+    \item Render
+\end{itemize}
+
+\section{Conclusión}
+
+Durante el desarrollo de la aplicación Pociones de Minecraft implementé distintos patrones de diseño y buenas prácticas con el objetivo de construir una arquitectura organizada, reutilizable y escalable.
+
+El uso conjunto de Flutter y Spring Boot me permitió desarrollar una aplicación moderna basada en APIs REST, autenticación JWT y separación adecuada de responsabilidades.
+    
+\end{document}
