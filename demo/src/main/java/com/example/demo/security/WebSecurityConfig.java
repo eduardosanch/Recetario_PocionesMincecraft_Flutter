@@ -84,8 +84,9 @@ public class WebSecurityConfig {
 
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
-
+                .requestMatchers(HttpMethod.GET, "/api/potions").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/potions/**").permitAll()
+                
                 .requestMatchers(HttpMethod.GET, "/api/potion-comments/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/potion-reactions/**").permitAll()
 
