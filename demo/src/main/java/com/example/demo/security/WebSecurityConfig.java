@@ -84,11 +84,17 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
 
-                        // Permisos públicos directos para probar backend
-                        .requestMatchers("/api/potions").permitAll()
-                        .requestMatchers("/api/potions/**").permitAll()
-                        .requestMatchers("/api/potion-comments/**").permitAll()
-                        .requestMatchers("/api/potion-reactions/**").permitAll()
+                        // Rutas públicas - sin validación de token
+                        .requestMatchers(HttpMethod.GET, "/api/potions").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/potions/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/potion-comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/potion-reactions/**").permitAll()
+                        
+                        // Rutas que SÍ requieren autenticación
+                        .requestMatchers(HttpMethod.POST, "/api/potions/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/potions/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/potion-comments/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/potion-reactions/**").authenticated()
 
                         .anyRequest().authenticated()
                 );
