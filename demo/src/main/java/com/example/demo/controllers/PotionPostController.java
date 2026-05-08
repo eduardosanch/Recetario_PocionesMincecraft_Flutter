@@ -44,15 +44,41 @@ public class PotionPostController {
         this.userRepository = userRepository;
     }
 
+    /*
+     * Ruta de prueba.
+     * Sirve para saber si el controlador está respondiendo.
+     *
+     * Prueba:
+     * https://recetario-pociones.onrender.com/api/potions/ping
+     */
+    @GetMapping("/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("Controlador de pociones funcionando");
+    }
+
+    /*
+     * Obtener todas las pociones.
+     *
+     * Ruta:
+     * GET /api/potions
+     */
     @GetMapping
     @Transactional(readOnly = true)
-    public List<PotionPostResponseDTO> getAllPotions() {
-        return potionPostRepository.findAll()
+    public ResponseEntity<List<PotionPostResponseDTO>> getAllPotions() {
+        List<PotionPostResponseDTO> potions = potionPostRepository.findAll()
                 .stream()
                 .map(this::toDTO)
                 .toList();
+
+        return ResponseEntity.ok(potions);
     }
 
+    /*
+     * Obtener una poción por ID.
+     *
+     * Ruta:
+     * GET /api/potions/{id}
+     */
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
     public ResponseEntity<?> getPotionById(@PathVariable Long id) {
@@ -66,6 +92,14 @@ public class PotionPostController {
         return ResponseEntity.ok(toDTO(potionOpt.get()));
     }
 
+    /*
+     * Crear una poción.
+     *
+     * Ruta:
+     * POST /api/potions/create
+     *
+     * Esta ruta sí necesita usuario autenticado.
+     */
     @PostMapping("/create")
     public ResponseEntity<?> createPotion(
             @Valid @RequestBody CreatePotionPostRequest request
@@ -86,12 +120,19 @@ public class PotionPostController {
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(toDTO(savedPotion));
+
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse("Error: " + e.getMessage()));
         }
     }
 
+    /*
+     * Eliminar una poción.
+     *
+     * Ruta:
+     * DELETE /api/potions/{id}
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePotion(@PathVariable Long id) {
         if (!potionPostRepository.existsById(id)) {
